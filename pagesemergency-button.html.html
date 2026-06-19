@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alerta 360</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Oswald:wght@700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red:       #D9000D;
+    --red-dark:  #A30009;
+    --red-glow:  #ff1a26;
+    --red-dim:   rgba(217,0,13,0.18);
+    --bg:        #0B0C0F;
+    --bg2:       #13151A;
+    --bg3:       #1C1F27;
+    --border:    rgba(255,255,255,0.08);
+    --text:      #E8E9EC;
+    --muted:     #7A7D86;
+    --success:   #00C97B;
+    --warning:   #FFB020;
+    --white:     #FFFFFF;
+    --radius:    12px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ─────────────────────────────── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 32px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 20px; letter-spacing: 2px;
+    color: var(--white);
+  }
+  .nav-logo span { color: var(--red); }
+  .nav-tabs { display: flex; gap: 4px; }
+  .tab-btn {
+    padding: 8px 20px; border: none; border-radius: 8px;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .2s;
+    background: transparent; color: var(--muted);
+  }
+  .tab-btn.active { background: var(--red); color: var(--white); }
+  .tab-btn:hover:not(.active) { background: var(--bg3); color: var(--text); }
+
+  /* ── SCREENS ─────────────────────────── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── HERO ────────────────────────────── */
+  .hero {
+    min-height: calc(100vh - 57px);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 24px; position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 55% at 50% 60%, rgba(217,0,13,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 999px; padding: 6px 16px;
+    font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    color: var(--muted); text-transform: uppercase; margin-bottom: 32px;
+  }
+  .hero-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(38px, 7vw, 72px);
+    line-height: 1; letter-spacing: 1px;
+    text-align: center; margin-bottom: 14px;
+    color: var(--white);
+  }
+  .hero-title span { color: var(--red); }
+  .hero-sub {
+    font-size: 15px; color: var(--muted); text-align: center;
+    max-width: 420px; line-height: 1.6; margin-bottom: 60px;
+  }
+
+  /* ── BIG BUTTON ──────────────────────── */
+  .emergency-wrap {
+    position: relative; display: flex;
+    align-items: center; justify-content: center;
+    margin-bottom: 48px;
+  }
+  .pulse-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid var(--red);
+    animation: pulse-out 2.4s ease-out infinite;
+    opacity: 0;
+  }
+  .ring1 { width: 220px; height: 220px; animation-delay: 0s; }
+  .ring2 { width: 280px; height: 280px; animation-delay: .6s; }
+  .ring3 { width: 340px; height: 340px; animation-delay: 1.2s; }
+  @keyframes pulse-out {
+    0%   { opacity: .7; transform: scale(.85); }
+    100% { opacity: 0;  transform: scale(1.15); }
+  }
+  .emergency-btn {
+    position: relative; z-index: 2;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff2d38, var(--red-dark));
+    border: 4px solid rgba(255,255,255,0.12);
+    box-shadow:
+      0 0 0 2px var(--red-dark),
+      0 0 40px rgba(217,0,13,0.55),
+      0 0 80px rgba(217,0,13,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.15);
+    cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    transition: transform .12s, box-shadow .2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .emergency-btn:hover {
+    transform: scale(1.05);
+    box-shadow:
+      0 0 0 2px var(--red-dark),
+      0 0 60px rgba(217,0,13,0.75),
+      0 0 120px rgba(217,0,13,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .emergency-btn:active { transform: scale(0.96); }
+  .btn-icon { font-size: 36px; line-height: 1; }
+  .btn-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px; letter-spacing: 2px;
+    color: var(--white); text-align: center; line-height: 1.2;
+  }
+
+  .hero-hint {
+    font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  /* status bar */
+  .status-bar {
+    display: flex; gap: 24px; margin-top: 48px;
+    padding: 18px 32px; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .status-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.green { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .dot.red   { background: var(--red);     box-shadow: 0 0 8px var(--red); animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* ── MODAL ───────────────────────────── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.75);
+    backdrop-filter: blur(6px);
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%; max-width: 640px;
+    max-height: 92vh; overflow-y: auto;
+    padding: 0;
+    box-shadow: 0 32px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(217,0,13,0.2);
+    animation: slide-up .3s ease;
+  }
+  @keyframes slide-up {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(217,0,13,0.12), transparent);
+  }
+  .modal-header-left { display: flex; align-items: center; gap: 14px; }
+  .modal-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--red-dim); display: flex; align-items: center; justify-content: center;
+    font-size: 22px; border: 1px solid rgba(217,0,13,0.3);
+  }
+  .modal-title { font-family: 'Oswald', sans-serif; font-size: 22px; color: var(--white); letter-spacing: .5px; }
+  .modal-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .close-btn {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--muted); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .close-btn:hover { background: var(--red-dim); color: var(--red); border-color: var(--red); }
+
+  .modal-body { padding: 28px; }
+
+  /* ── FORM ────────────────────────────── */
+  .form-section {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+  }
+  .section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--red); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(to right, rgba(217,0,13,0.3), transparent);
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .form-group:last-child { margin-bottom: 0; }
+  label { font-size: 12px; font-weight: 500; color: var(--muted); }
+  label .req { color: var(--red); }
+  input[type=text], input[type=email], input[type=tel], textarea, select {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+    color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px;
+    transition: border-color .2s, box-shadow .2s;
+    width: 100%; outline: none;
+    -webkit-appearance: none;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(217,0,13,0.15);
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  select { cursor: pointer; }
+  select option { background: var(--bg3); }
+
+  /* toggle chips */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    padding: 7px 14px; border-radius: 999px;
+    border: 1px solid var(--border);
+    font-size: 12px; font-weight: 500; color: var(--muted);
+    cursor: pointer; transition: all .15s; background: var(--bg2);
+    -webkit-user-select: none; user-select: none;
+  }
+  .chip.selected { background: var(--red-dim); border-color: var(--red); color: var(--white); }
+  .chip:hover:not(.selected) { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+  /* photo upload */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 24px; text-align: center; cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative;
+  }
+  .upload-zone:hover { border-color: var(--red); background: var(--red-dim); }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-icon { font-size: 28px; margin-bottom: 8px; }
+  .upload-text { font-size: 13px; color: var(--muted); }
+  .upload-text strong { color: var(--text); }
+  .photo-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .photo-thumb {
+    width: 72px; height: 72px; border-radius: 8px;
+    object-fit: cover; border: 2px solid var(--border);
+    position: relative;
+  }
+  .thumb-wrap { position: relative; display: inline-block; }
+  .thumb-remove {
+    position: absolute; top: -6px; right: -6px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--red); border: 2px solid var(--bg2);
+    color: white; font-size: 11px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+  }
+
+  /* submit */
+  .submit-btn {
+    width: 100%; padding: 16px;
+    background: var(--red);
+    border: none; border-radius: var(--radius);
+    color: var(--white); font-family: 'Oswald', sans-serif;
+    font-size: 18px; letter-spacing: 2px;
+    cursor: pointer; margin-top: 8px;
+    transition: background .2s, transform .1s, box-shadow .2s;
+    box-shadow: 0 4px 24px rgba(217,0,13,0.35);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .submit-btn:hover { background: var(--red-glow); box-shadow: 0 4px 32px rgba(217,0,13,0.55); }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ── SUCCESS ─────────────────────────── */
+  .success-screen {
+    text-align: center; padding: 60px 28px;
+    display: none; flex-direction: column; align-items: center; gap: 16px;
+  }
+  .success-screen.show { display: flex; }
+  .success-icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: rgba(0,201,123,0.12); border: 2px solid var(--success);
+    font-size: 36px; display: flex; align-items: center; justify-content: center;
+    animation: pop .4s ease;
+  }
+  @keyframes pop { from{transform:scale(0)} to{transform:scale(1)} }
+  .success-title { font-family: 'Oswald', sans-serif; font-size: 26px; color: var(--success); }
+  .success-sub { font-size: 14px; color: var(--muted); max-width: 340px; line-height: 1.6; }
+  .success-id {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 20px; font-size: 13px; color: var(--muted);
+  }
+  .success-id strong { color: var(--text); }
+
+  /* ── ADM SCREEN ───────────────────────── */
+  .adm-screen { padding: 36px 32px; max-width: 900px; margin: 0 auto; }
+  .adm-title {
+    font-family: 'Oswald', sans-serif; font-size: 28px;
+    color: var(--white); margin-bottom: 4px;
+  }
+  .adm-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+
+  .adm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 36px; }
+  @media(max-width:640px){ .adm-grid{grid-template-columns:1fr} .form-row{grid-template-columns:1fr} }
+
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px;
+  }
+  .card-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+  }
+  .email-form { display: flex; gap: 8px; margin-bottom: 14px; }
+  .email-form input { flex: 1; }
+  .add-btn {
+    padding: 10px 18px; background: var(--red); border: none;
+    border-radius: 8px; color: var(--white); font-size: 13px;
+    font-weight: 600; cursor: pointer; white-space: nowrap;
+    transition: background .15s;
+  }
+  .add-btn:hover { background: var(--red-glow); }
+
+  .email-list { display: flex; flex-direction: column; gap: 6px; }
+  .email-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 13px;
+  }
+  .email-item span { color: var(--text); }
+  .email-remove {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 16px; line-height: 1;
+    transition: color .15s; padding: 0 4px;
+  }
+  .email-remove:hover { color: var(--red); }
+  .no-emails { font-size: 13px; color: var(--muted); text-align: center; padding: 16px 0; }
+
+  /* stats */
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { font-size: 13px; color: var(--muted); }
+  .stat-val { font-size: 16px; font-weight: 700; color: var(--white); }
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  }
+  .badge.danger { background: rgba(217,0,13,0.18); color: #ff6b73; }
+  .badge.warn   { background: rgba(255,176,32,0.15); color: var(--warning); }
+  .badge.ok     { background: rgba(0,201,123,0.15); color: var(--success); }
+
+  /* records table */
+  .records-title {
+    font-family: 'Oswald', sans-serif; font-size: 22px;
+    color: var(--white); margin-bottom: 4px;
+  }
+  .records-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .records-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { border-bottom: 2px solid var(--border); }
+  th { text-align: left; padding: 10px 14px; color: var(--muted); font-weight: 600; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+  tbody tr:hover { background: var(--bg2); }
+  td { padding: 12px 14px; color: var(--text); vertical-align: middle; }
+  .td-id { font-family: monospace; font-size: 12px; color: var(--muted); }
+  .td-name { font-weight: 500; }
+  .empty-row td { text-align: center; color: var(--muted); padding: 32px; }
+
+  .detail-btn {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 12px; font-size: 12px;
+    color: var(--text); cursor: pointer; transition: all .15s;
+  }
+  .detail-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* detail modal */
+  .detail-modal { max-width: 560px; }
+  .detail-field { margin-bottom: 14px; }
+  .detail-field label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; }
+  .detail-field p { font-size: 14px; color: var(--text); line-height: 1.5; }
+  .detail-photos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .detail-photos img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+
+  .loader {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white; border-radius: 50%;
+    animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* toast */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 24px;
+    font-size: 14px; color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 999; display: none; align-items: center; gap: 10px;
+    min-width: 280px; justify-content: center;
+    animation: toast-in .3s ease;
+  }
+  .toast.show { display: flex; }
+  @keyframes toast-in { from{opacity:0;transform:translateX(-50%) translateY(16px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+  .toast-icon { font-size: 18px; }
+
+  /* ── ADM LOGIN ───────────────────────── */
+  .adm-login {
+    min-height: calc(100vh - 57px);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .login-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 380px;
+    box-shadow: 0 32px 80px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+  }
+  .login-icon {
+    width: 64px; height: 64px; border-radius: 16px;
+    background: var(--bg3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; margin-bottom: 20px;
+  }
+  .login-title {
+    font-family: 'Oswald', sans-serif; font-size: 24px;
+    color: var(--white); margin-bottom: 6px; text-align: center;
+  }
+  .login-sub { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 28px; }
+  .login-group { width: 100%; display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .login-group label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .5px; }
+  .login-input-wrap { position: relative; }
+  .login-input-wrap input { width: 100%; padding-right: 44px; }
+  .toggle-pw {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; font-size: 16px;
+    color: var(--muted); padding: 0; line-height: 1;
+  }
+  .login-btn {
+    width: 100%; padding: 13px; background: var(--red); border: none;
+    border-radius: var(--radius); color: var(--white);
+    font-family: 'Oswald', sans-serif; font-size: 17px; letter-spacing: 1.5px;
+    cursor: pointer; margin-top: 6px; transition: background .15s, box-shadow .2s;
+    box-shadow: 0 4px 20px rgba(217,0,13,0.3);
+  }
+  .login-btn:hover { background: var(--red-glow); }
+  .login-error {
+    font-size: 12px; color: #ff6b73; text-align: center;
+    margin-top: 10px; min-height: 18px;
+  }
+  .login-shake { animation: shake .35s ease; }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-8px)}
+    40%{transform:translateX(8px)}
+    60%{transform:translateX(-5px)}
+    80%{transform:translateX(5px)}
+  }
+
+  /* adm authenticated content */
+  .adm-content { display: none; }
+  .adm-content.visible { display: block; }
+
+  /* logout */
+  .logout-btn {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 16px; font-size: 12px;
+    color: var(--muted); cursor: pointer; transition: all .15s;
+    margin-left: 12px;
+  }
+  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* download CSV */
+  .download-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 18px; background: transparent;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; font-weight: 500; color: var(--text);
+    cursor: pointer; transition: all .15s; text-decoration: none;
+    margin-bottom: 14px;
+  }
+  .download-btn:hover { border-color: var(--success); color: var(--success); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">🔴&nbsp;<span>ALERTA</span> 360</div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="showScreen('home')">🏠 Início</button>
+    <button class="tab-btn" onclick="showScreen('adm')">🔧 ADM</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="screen-home" class="screen active">
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-badge">Sistema de Acionamento</div>
+    <h1 class="hero-title"><span>ALERTA</span> 360</h1>
+    <p class="hero-sub">Em caso de acidente, incidente ou situação de risco, acione imediatamente. Sua solicitação será enviada para a equipe responsável.</p>
+
+    <div class="emergency-wrap">
+      <div class="pulse-ring ring1"></div>
+      <div class="pulse-ring ring2"></div>
+      <div class="pulse-ring ring3"></div>
+      <button class="emergency-btn" onclick="openModal()" aria-label="Acionar Emergência">
+        <div class="btn-icon">🚨</div>
+        <div class="btn-label">ACIONAR<br/>EMERGÊNCIA</div>
+      </button>
+    </div>
+
+    <p class="hero-hint">Pressione o botão para registrar a ocorrência</p>
+
+    <div class="status-bar">
+      <div class="status-item"><div class="dot green"></div> Sistema ativo</div>
+      <div class="status-item"><div class="dot green"></div> Notificações online</div>
+      <div class="status-item" id="email-count-status"><div class="dot" id="email-dot" style="background:var(--muted)"></div> <span id="email-count-text">Carregando…</span></div>
+    </div>
+  </section>
+</div>
+
+<!-- ADM -->
+<div id="screen-adm" class="screen">
+
+  <!-- LOGIN GATE -->
+  <div class="adm-login" id="adm-login-gate">
+    <div class="login-card" id="login-card">
+      <div class="login-icon">🔐</div>
+      <div class="login-title">Acesso Restrito</div>
+      <p class="login-sub">Insira a senha para acessar o painel administrativo.</p>
+      <div class="login-group">
+        <label>Senha</label>
+        <div class="login-input-wrap">
+          <input type="password" id="login-pw" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter') doLogin()" />
+          <button class="toggle-pw" onclick="togglePw()" title="Mostrar/ocultar">👁️</button>
+        </div>
+      </div>
+      <button class="login-btn" onclick="doLogin()">ENTRAR</button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- AUTHENTICATED CONTENT -->
+  <div class="adm-content" id="adm-content">
+    <div class="adm-screen">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px">
+        <h2 class="adm-title" style="margin:0">Painel Administrativo</h2>
+        <button class="logout-btn" onclick="doLogout()">🔒 Sair</button>
+      </div>
+      <p class="adm-sub">Gerencie os destinatários e consulte os acionamentos registrados.</p>
+
+      <div class="adm-grid">
+        <!-- E-mails -->
+        <div class="card">
+          <div class="card-title">📧 E-mails Destinatários</div>
+          <div class="email-form">
+            <input type="email" id="adm-email-input" placeholder="email@empresa.com" onkeydown="if(event.key==='Enter') addEmail()" />
+            <button class="add-btn" onclick="addEmail()">Adicionar</button>
+          </div>
+          <div class="email-list" id="email-list"></div>
+        </div>
+
+        <!-- Stats -->
+        <div class="card">
+          <div class="card-title">📊 Estatísticas</div>
+          <div id="stats-panel">
+            <div class="stat-row"><span class="stat-label">Total de acionamentos</span><span class="stat-val" id="stat-total">0</span></div>
+            <div class="stat-row"><span class="stat-label">Com lesões</span><span class="stat-val"><span class="badge danger" id="stat-lesion">0</span></span></div>
+            <div class="stat-row"><span class="stat-label">Com danos materiais</span><span class="stat-val"><span class="badge warn" id="stat-material">0</span></span></div>
+            <div class="stat-row"><span class="stat-label">Sem danos</span><span class="stat-val"><span class="badge ok" id="stat-none">0</span></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Records -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+          <div>
+            <h3 class="records-title">Histórico de Acionamentos</h3>
+            <p class="records-sub" style="margin-bottom:0">Todos os registros de emergência submetidos.</p>
+          </div>
+          <button class="download-btn" onclick="exportCSV()">⬇️ Exportar CSV</button>
+        </div>
+        <div class="records-wrap" style="margin-top:14px">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>Data/Hora</th><th>Nome</th><th>Local</th><th>Tipo</th><th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="records-body">
+              <tr class="empty-row"><td colspan="6">Nenhum acionamento registrado ainda.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- EMERGENCY MODAL -->
+<div class="modal-overlay" id="emergency-modal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <!-- FORM -->
+    <div id="form-view">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-icon">🚨</div>
+          <div>
+            <div class="modal-title">Registro de Emergência</div>
+            <div class="modal-subtitle">Preencha com calma — todas as informações são importantes</div>
+          </div>
+        </div>
+        <button class="close-btn" onclick="closeModal()" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Identificação -->
+        <div class="form-section">
+          <div class="section-label">Identificação</div>
+
+          <!-- Toggle anônimo -->
+          <div class="form-group" style="margin-bottom:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Participação anônima</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px">Seus dados não serão informados no relato</div>
+              </div>
+              <label style="position:relative;display:inline-flex;align-items:center;cursor:pointer;gap:0">
+                <input type="checkbox" id="toggle-anonimo" onchange="toggleAnonimo(this)" style="position:absolute;opacity:0;width:0;height:0" />
+                <div id="toggle-track" style="width:44px;height:24px;background:var(--bg3);border:1px solid var(--border);border-radius:999px;position:relative;transition:background .2s">
+                  <div id="toggle-thumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;background:var(--muted);border-radius:50%;transition:all .2s"></div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Campos identificação (ocultados quando anônimo) -->
+          <div id="id-fields">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nome completo <span class="req">*</span></label>
+                <input type="text" id="f-nome" placeholder="Seu nome" />
+              </div>
+              <div class="form-group">
+                <label>Telefone de contato <span class="req">*</span></label>
+                <input type="tel" id="f-telefone" placeholder="(00) 00000-0000" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Mensagem anônimo -->
+          <div id="anonimo-msg" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--muted);text-align:center;">
+            🕵️ Relato anônimo — nome e telefone não serão informados.
+          </div>
+
+          <!-- Setor sempre visível -->
+          <div class="form-group" style="margin-top:12px">
+            <label>Setor / Departamento <span class="req">*</span></label>
+            <input type="text" id="f-setor" placeholder="Ex: Produção, TI, Manutenção…" />
+          </div>
+        </div>
+
+        <!-- Ocorrência -->
+        <div class="form-section">
+          <div class="section-label">O que aconteceu</div>
+          <div class="form-group">
+            <label>Tipo de ocorrência <span class="req">*</span></label>
+            <select id="f-tipo">
+              <option value="">Selecione…</option>
+              <option value="Acidente de trabalho">Acidente de trabalho</option>
+              <option value="Incêndio ou princípio de incêndio">Incêndio / princípio de incêndio</option>
+              <option value="Vazamento ou derramamento">Vazamento / derramamento</option>
+              <option value="Queda de pessoa ou objeto">Queda de pessoa ou objeto</option>
+              <option value="Falha em equipamento">Falha em equipamento</option>
+              <option value="Situação de risco iminente">Situação de risco iminente</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Descreva o que aconteceu <span class="req">*</span></label>
+            <textarea id="f-descricao" placeholder="Descreva detalhadamente o que ocorreu…"></textarea>
+          </div>
+        </div>
+
+        <!-- Local -->
+        <div class="form-section">
+          <div class="section-label">Onde aconteceu</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Local / Área <span class="req">*</span></label>
+              <input type="text" id="f-local" placeholder="Ex: Galpão 3, Linha 2…" />
+            </div>
+            <div class="form-group">
+              <label>Data e hora da ocorrência</label>
+              <input type="text" id="f-data-hora" placeholder="Ex: hoje às 14h30" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Como aconteceu (condições, contexto)</label>
+            <textarea id="f-como" placeholder="Ex: operador estava realizando manutenção quando…" style="min-height:70px"></textarea>
+          </div>
+        </div>
+
+        <!-- Danos -->
+        <div class="form-section">
+          <div class="section-label">Avaliação de Danos</div>
+          <div class="form-group">
+            <label>Houve lesões em pessoas?</label>
+            <div class="chip-group" id="chips-lesao">
+              <div class="chip" data-val="Não" onclick="selectChip(this,'chips-lesao')">✅ Não</div>
+              <div class="chip" data-val="Sim — leve" onclick="selectChip(this,'chips-lesao')">⚠️ Sim — leve</div>
+              <div class="chip" data-val="Sim — grave" onclick="selectChip(this,'chips-lesao')">🚑 Sim — grave</div>
+              <div class="chip" data-val="Óbito" onclick="selectChip(this,'chips-lesao')">💀 Óbito</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Houve danos materiais?</label>
+            <div class="chip-group" id="chips-material">
+              <div class="chip" data-val="Não" onclick="selectChip(this,'chips-material')">✅ Não</div>
+              <div class="chip" data-val="Sim — pequeno" onclick="selectChip(this,'chips-material')">🔧 Sim — pequeno</div>
+              <div class="chip" data-val="Sim — grande" onclick="selectChip(this,'chips-material')">🏭 Sim — grande</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Descreva os danos (se houver)</label>
+            <textarea id="f-danos" placeholder="Descreva lesões, equipamentos danificados, prejuízo estimado…" style="min-height:70px"></textarea>
+          </div>
+        </div>
+
+        <!-- Fotos -->
+        <div class="form-section">
+          <div class="section-label">Fotos da Ocorrência</div>
+          <div class="upload-zone" id="upload-zone">
+            <input type="file" id="f-fotos" accept="image/*" multiple onchange="handlePhotos(this)" />
+            <div class="upload-icon">📷</div>
+            <div class="upload-text"><strong>Clique ou arraste fotos aqui</strong><br/>JPG, PNG — múltiplas fotos aceitas</div>
+          </div>
+          <div class="photo-preview" id="photo-preview"></div>
+        </div>
+
+        <button class="submit-btn" id="submit-btn" onclick="submitForm()">
+          🚨 ENVIAR ACIONAMENTO DE EMERGÊNCIA
+        </button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-view">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Acionamento Registrado!</div>
+      <p class="success-sub">Sua ocorrência foi registrada e os responsáveis foram notificados por e-mail imediatamente.</p>
+      <div class="success-id">Protocolo: <strong id="success-protocol">—</strong></div>
+      <button class="submit-btn" style="max-width:280px;margin-top:8px" onclick="closeModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal detail-modal">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-icon">📋</div>
+        <div>
+          <div class="modal-title">Detalhes da Ocorrência</div>
+          <div class="modal-subtitle" id="detail-protocol-label">—</div>
+        </div>
+      </div>
+      <button class="close-btn" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">✅</span>
+  <span id="toast-msg">Mensagem</span>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
+let emails = JSON.parse(localStorage.getItem('emerg_emails') || '[]');
+let records = JSON.parse(localStorage.getItem('emerg_records') || '[]');
+let photos = []; // base64 strings
+
+/* ═══════════════════════════════════════
+   ADM AUTH
+═══════════════════════════════════════ */
+const ADM_PW = 'sso26';
+let admAuthed = false;
+
+function doLogin() {
+  const pw = document.getElementById('login-pw').value;
+  if (pw === ADM_PW) {
+    admAuthed = true;
+    document.getElementById('adm-login-gate').style.display = 'none';
+    document.getElementById('adm-content').classList.add('visible');
+    document.getElementById('login-pw').value = '';
+    document.getElementById('login-error').textContent = '';
+    renderEmails(); renderRecords(); renderStats();
+  } else {
+    const card = document.getElementById('login-card');
+    card.classList.remove('login-shake');
+    void card.offsetWidth;
+    card.classList.add('login-shake');
+    document.getElementById('login-error').textContent = 'Senha incorreta. Tente novamente.';
+    document.getElementById('login-pw').value = '';
+    document.getElementById('login-pw').focus();
+  }
+}
+
+function doLogout() {
+  admAuthed = false;
+  document.getElementById('adm-login-gate').style.display = '';
+  document.getElementById('adm-content').classList.remove('visible');
+  // go back to home
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-home').classList.add('active');
+  document.querySelectorAll('.tab-btn')[0].classList.add('active');
+  showToast('🔒', 'Sessão encerrada');
+}
+
+function togglePw() {
+  const inp = document.getElementById('login-pw');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+/* ═══════════════════════════════════════
+   NAV / SCREENS
+═══════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'adm' && admAuthed) { renderEmails(); renderRecords(); renderStats(); }
+  if (id === 'home') updateEmailStatus();
+}
+
+/* ═══════════════════════════════════════
+   MODAL
+═══════════════════════════════════════ */
+function openModal() {
+  document.getElementById('emergency-modal').classList.add('open');
+  document.getElementById('form-view').style.display = '';
+  document.getElementById('success-view').classList.remove('show');
+}
+function closeModal() {
+  document.getElementById('emergency-modal').classList.remove('open');
+  resetForm();
+}
+function closeDetail() {
+  document.getElementById('detail-modal').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════
+   CHIPS
+═══════════════════════════════════════ */
+function selectChip(el, groupId) {
+  document.getElementById(groupId).querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function getChip(groupId) {
+  const sel = document.querySelector('#' + groupId + ' .chip.selected');
+  return sel ? sel.dataset.val : '';
+}
+
+/* ═══════════════════════════════════════
+   PHOTOS
+═══════════════════════════════════════ */
+function handlePhotos(input) {
+  const files = Array.from(input.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      photos.push(e.target.result);
+      renderPhotoPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function renderPhotoPreview() {
+  const wrap = document.getElementById('photo-preview');
+  wrap.innerHTML = photos.map((src, i) => `
+    <div class="thumb-wrap">
+      <img src="${src}" class="photo-thumb" />
+      <div class="thumb-remove" onclick="removePhoto(${i})">✕</div>
+    </div>`).join('');
+}
+function removePhoto(i) { photos.splice(i, 1); renderPhotoPreview(); }
+
+/* ═══════════════════════════════════════
+   SUBMIT FORM
+═══════════════════════════════════════ */
+async function submitForm() {
+  const tipo = document.getElementById('f-tipo').value;
+  const descricao = document.getElementById('f-descricao').value.trim();
+  const local = document.getElementById('f-local').value.trim();
+
+  let nome = 'Anônimo', telefone = '', setor = '';
+  setor = document.getElementById('f-setor').value.trim();
+
+  if (!isAnonimo) {
+    nome = document.getElementById('f-nome').value.trim();
+    telefone = document.getElementById('f-telefone').value.trim();
+    if (!nome || !telefone) {
+      showToast('⚠️', 'Informe nome e telefone, ou ative o modo anônimo');
+      return;
+    }
+  }
+
+  if (!tipo || !descricao || !local || !setor) {
+    showToast('⚠️', 'Preencha todos os campos obrigatórios (*)');
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="loader"></div> Enviando…';
+
+  const protocol = 'EMG-' + Date.now().toString(36).toUpperCase();
+  const now = new Date();
+  const timestamp = now.toLocaleString('pt-BR');
+
+  const record = {
+    id: protocol,
+    timestamp,
+    anonimo: isAnonimo,
+    nome: isAnonimo ? 'Anônimo' : nome,
+    setor: isAnonimo ? '' : setor,
+    telefone: isAnonimo ? '' : telefone,
+    tipo,
+    descricao,
+    local,
+    dataHora: document.getElementById('f-data-hora').value.trim(),
+    como: document.getElementById('f-como').value.trim(),
+    lesao: getChip('chips-lesao'),
+    material: getChip('chips-material'),
+    danos: document.getElementById('f-danos').value.trim(),
+    fotos: photos.slice(),
+  };
+
+  records.unshift(record);
+  localStorage.setItem('emerg_records', JSON.stringify(records));
+
+  // send via Claude API
+  await sendEmailsViaAI(record);
+
+  btn.disabled = false;
+  btn.innerHTML = '🚨 ENVIAR ACIONAMENTO DE EMERGÊNCIA';
+
+  document.getElementById('form-view').style.display = 'none';
+  document.getElementById('success-view').classList.add('show');
+  document.getElementById('success-protocol').textContent = protocol;
+
+  renderStats();
+  updateEmailStatus();
+}
+
+/* ═══════════════════════════════════════
+   AI EMAIL SEND
+═══════════════════════════════════════ */
+async function sendEmailsViaAI(record) {
+  if (!emails.length) return;
+
+  const prompt = `
+Você é um sistema de notificação de emergência corporativa.
+Gere um e-mail formal em português BR de acionamento de emergência com as informações abaixo.
+Responda APENAS com um JSON no formato: {"subject": "...", "body": "..."}
+Não inclua markdown ou backticks.
+
+Dados da ocorrência:
+- Protocolo: ${record.id}
+- Data/Hora: ${record.timestamp}
+- Nome do acionador: ${record.anonimo ? 'ANÔNIMO' : record.nome}
+- Setor: ${record.setor || 'Não informado'}
+- Telefone: ${record.anonimo ? 'Não informado (relato anônimo)' : record.telefone}
+- Tipo de ocorrência: ${record.tipo}
+- Descrição: ${record.descricao}
+- Local: ${record.local}
+- Data/hora estimada: ${record.dataHora || 'Não informado'}
+- Como ocorreu: ${record.como || 'Não informado'}
+- Lesões em pessoas: ${record.lesao || 'Não informado'}
+- Danos materiais: ${record.material || 'Não informado'}
+- Descrição dos danos: ${record.danos || 'Não informado'}
+- Fotos anexadas: ${record.fotos.length} foto(s)
+`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(c => c.text || '').join('') || '';
+    const cleaned = text.replace(/```json|```/g, '').trim();
+    const mail = JSON.parse(cleaned);
+
+    // store generated email in record
+    record.emailSubject = mail.subject;
+    record.emailBody = mail.body;
+    records[0] = record;
+    localStorage.setItem('emerg_records', JSON.stringify(records));
+
+    // mailto fallback (opens default mail client with all emails)
+    const to = emails.join(',');
+    const bodyEncoded = encodeURIComponent(mail.body);
+    const subjectEncoded = encodeURIComponent(mail.subject);
+    window.open(`mailto:${to}?subject=${subjectEncoded}&body=${bodyEncoded}`, '_blank');
+
+  } catch(e) {
+    console.warn('Email gen error:', e);
+  }
+}
+
+/* ═══════════════════════════════════════
+   ANÔNIMO TOGGLE
+═══════════════════════════════════════ */
+let isAnonimo = false;
+function toggleAnonimo(cb) {
+  isAnonimo = cb.checked;
+  document.getElementById('id-fields').style.display = isAnonimo ? 'none' : '';
+  document.getElementById('anonimo-msg').style.display = isAnonimo ? '' : 'none';
+  const track = document.getElementById('toggle-track');
+  const thumb = document.getElementById('toggle-thumb');
+  if (isAnonimo) {
+    track.style.background = 'var(--red)';
+    track.style.borderColor = 'var(--red-dark)';
+    thumb.style.background = '#fff';
+    thumb.style.left = '23px';
+  } else {
+    track.style.background = 'var(--bg3)';
+    track.style.borderColor = 'var(--border)';
+    thumb.style.background = 'var(--muted)';
+    thumb.style.left = '3px';
+  }
+}
+
+/* ═══════════════════════════════════════
+   EXPORT CSV
+═══════════════════════════════════════ */
+function exportCSV() {
+  if (!records.length) { showToast('⚠️', 'Nenhum registro para exportar'); return; }
+
+  const cols = ['ID','Data/Hora','Anônimo','Nome','Setor','Telefone','Tipo','Local',
+                 'Data/Hora Ocorrência','Como Ocorreu','Lesões','Danos Materiais',
+                 'Descrição dos Danos','Qtd Fotos'];
+  const escape = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const rows = records.map(r => [
+    r.id, r.timestamp, r.anonimo ? 'Sim' : 'Não',
+    r.anonimo ? 'Anônimo' : r.nome, r.setor, r.anonimo ? '' : r.telefone,
+    r.tipo, r.local, r.dataHora, r.como, r.lesao, r.material,
+    r.danos, r.fotos?.length ?? 0
+  ].map(escape).join(','));
+
+  const csv = '\uFEFF' + [cols.map(escape).join(','), ...rows].join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `emergencias_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('⬇️', `${records.length} registro(s) exportado(s)`);
+}
+
+/* ═══════════════════════════════════════
+   RESET FORM
+═══════════════════════════════════════ */
+function resetForm() {
+  ['f-nome','f-telefone','f-setor','f-tipo','f-descricao','f-local','f-data-hora','f-como','f-danos'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
+  photos = [];
+  renderPhotoPreview();
+  // reset anônimo
+  isAnonimo = false;
+  const cb = document.getElementById('toggle-anonimo');
+  if (cb) { cb.checked = false; toggleAnonimo(cb); }
+}
+
+/* ═══════════════════════════════════════
+   ADM — EMAILS
+═══════════════════════════════════════ */
+function addEmail() {
+  const input = document.getElementById('adm-email-input');
+  const val = input.value.trim().toLowerCase();
+  if (!val || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+    showToast('⚠️', 'Insira um e-mail válido'); return;
+  }
+  if (emails.includes(val)) { showToast('⚠️', 'E-mail já cadastrado'); return; }
+  emails.push(val);
+  localStorage.setItem('emerg_emails', JSON.stringify(emails));
+  input.value = '';
+  renderEmails();
+  updateEmailStatus();
+  showToast('✅', 'E-mail adicionado com sucesso');
+}
+
+function removeEmail(idx) {
+  emails.splice(idx, 1);
+  localStorage.setItem('emerg_emails', JSON.stringify(emails));
+  renderEmails();
+  updateEmailStatus();
+  showToast('🗑️', 'E-mail removido');
+}
+
+function renderEmails() {
+  const list = document.getElementById('email-list');
+  if (!emails.length) {
+    list.innerHTML = '<div class="no-emails">Nenhum e-mail cadastrado ainda.</div>';
+    return;
+  }
+  list.innerHTML = emails.map((e, i) => `
+    <div class="email-item">
+      <span>📧 ${e}</span>
+      <button class="email-remove" onclick="removeEmail(${i})" title="Remover">✕</button>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════
+   ADM — RECORDS
+═══════════════════════════════════════ */
+function renderRecords() {
+  const tbody = document.getElementById('records-body');
+  if (!records.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Nenhum acionamento registrado ainda.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = records.map((r, i) => {
+    const hasBadge = r.lesao && r.lesao !== 'Não' ? '🚑' : r.material && r.material !== 'Não' ? '⚠️' : '✅';
+    return `
+      <tr>
+        <td class="td-id">${r.id}</td>
+        <td>${r.timestamp}</td>
+        <td class="td-name">${r.nome}</td>
+        <td>${r.local}</td>
+        <td>${hasBadge} ${r.tipo}</td>
+        <td><button class="detail-btn" onclick="openDetail(${i})">Ver detalhes</button></td>
+      </tr>`;
+  }).join('');
+}
+
+function renderStats() {
+  const total = records.length;
+  const lesion = records.filter(r => r.lesao && r.lesao !== 'Não').length;
+  const material = records.filter(r => r.material && r.material !== 'Não').length;
+  const none = records.filter(r => (!r.lesao || r.lesao === 'Não') && (!r.material || r.material === 'Não')).length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-lesion').textContent = lesion;
+  document.getElementById('stat-material').textContent = material;
+  document.getElementById('stat-none').textContent = none;
+}
+
+function openDetail(idx) {
+  const r = records[idx];
+  document.getElementById('detail-protocol-label').textContent = `Protocolo ${r.id} — ${r.timestamp}`;
+  const photosHtml = r.fotos?.length
+    ? `<div class="detail-photos">${r.fotos.map(src => `<img src="${src}" />`).join('')}</div>`
+    : '<p style="color:var(--muted);font-size:13px">Nenhuma foto anexada.</p>';
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-field"><label>Acionador</label><p>${r.anonimo ? '🕵️ <em style="color:var(--muted)">Relato anônimo</em>' : r.nome + (r.setor ? ' / ' + r.setor : '')}</p></div>
+    ${!r.anonimo && r.telefone ? `<div class="detail-field"><label>Telefone</label><p>${r.telefone}</p></div>` : ''}
+    <div class="detail-field"><label>Tipo de ocorrência</label><p>${r.tipo}</p></div>
+    <div class="detail-field"><label>Descrição</label><p>${r.descricao}</p></div>
+    <div class="detail-field"><label>Local</label><p>${r.local}</p></div>
+    ${r.dataHora ? `<div class="detail-field"><label>Data/Hora estimada</label><p>${r.dataHora}</p></div>` : ''}
+    ${r.como ? `<div class="detail-field"><label>Como ocorreu</label><p>${r.como}</p></div>` : ''}
+    <div class="detail-field"><label>Lesões em pessoas</label><p>${r.lesao || 'Não informado'}</p></div>
+    <div class="detail-field"><label>Danos materiais</label><p>${r.material || 'Não informado'}</p></div>
+    ${r.danos ? `<div class="detail-field"><label>Descrição dos danos</label><p>${r.danos}</p></div>` : ''}
+    <div class="detail-field"><label>Fotos</label>${photosHtml}</div>
+    ${r.emailSubject ? `<div class="detail-field"><label>E-mail gerado — assunto</label><p>${r.emailSubject}</p></div>` : ''}
+  `;
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+/* ═══════════════════════════════════════
+   EMAIL STATUS (home)
+═══════════════════════════════════════ */
+function updateEmailStatus() {
+  const dot = document.getElementById('email-dot');
+  const txt = document.getElementById('email-count-text');
+  if (emails.length) {
+    dot.style.background = 'var(--success)';
+    dot.style.boxShadow = '0 0 8px var(--success)';
+    txt.textContent = `${emails.length} e-mail(s) configurado(s)`;
+  } else {
+    dot.style.background = 'var(--warning)';
+    dot.style.boxShadow = '0 0 8px var(--warning)';
+    txt.textContent = 'Nenhum e-mail configurado';
+  }
+}
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+let toastTimer;
+function showToast(icon, msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+updateEmailStatus();
+renderStats();
+
+// close modal clicking overlay
+document.getElementById('emergency-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDetail();
+});
+</script>
+</body>
+</html>
